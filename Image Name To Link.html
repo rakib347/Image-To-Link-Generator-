@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Image Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background: #ffffffdd;
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .logo-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .title {
+      font-size: 26px;
+      font-weight: bold;
+      background: linear-gradient(270deg, #ff6ec4, #7873f5, #4ade80, #facc15);
+      background-size: 600% 600%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: animateText 6s ease infinite;
+    }
+
+    @keyframes animateText {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    input, button {
+      padding: 12px;
+      font-size: 15px;
+      margin: 10px 0;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 10px;
+      border: none;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    input {
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: linear-gradient(to right, #6366f1, #4f46e5);
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      background: linear-gradient(to right, #4338ca, #3730a3);
+    }
+
+    #copyButton {
+      background: linear-gradient(to right, #10b981, #059669);
+      display: none;
+    }
+
+    #downloadButton {
+      background: linear-gradient(to right, #f59e0b, #d97706);
+      display: none;
+      margin-top: 10px;
+    }
+
+    img {
+      margin-top: 20px;
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+      display: none;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    #message {
+      margin-top: 10px;
+      word-break: break-word;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .telegram-link {
+      margin-top: 30px;
+      font-size: 16px;
+      background: linear-gradient(to right, #0ea5e9, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      animation: animateText 5s linear infinite;
+    }
+
+    .telegram-link a {
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .telegram-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-title">
+      <img src="https://img.icons8.com/color/96/image.png" class="logo" alt="Logo" />
+      <h2 class="title">AI Image Generator</h2>
+    </div>
+
+    <input type="text" id="prompt" placeholder="Describe your image..." />
+    <button onclick="generateImage()">Generate</button>
+
+    <div id="result">
+      <img id="image" src="" alt="Generated Image" />
+      <p id="message"></p>
+      <button id="copyButton" onclick="copyImageLink()">ইমেজ লিংক কপি করুন</button>
+      <button id="downloadButton" onclick="downloadImage()">ডাউনলোড করুন</button>
+    </div>
+  </div>
+
+  <div class="telegram-link">
+    <p>আমাদের টেলিগ্ৰাম চ্যানেলে যুক্ত হোন:</p>
+    <a href="https://t.me/your_channel_username" target="_blank">https://t.me/your_channel_username</a>
+  </div>
+
+  <script>
+    let fullResponse = '';
+
+    async function generateImage() {
+      const prompt = document.getElementById('prompt').value;
+      const image = document.getElementById('image');
+      const message = document.getElementById('message');
+      const copyButton = document.getElementById('copyButton');
+      const downloadButton = document.getElementById('downloadButton');
+
+      image.style.display = 'none';
+      copyButton.style.display = 'none';
+      downloadButton.style.display = 'none';
+      message.textContent = 'Generating...';
+      fullResponse = '';
+
+      const url = 'https://1yjs1yldj7.execute-api.us-east-1.amazonaws.com/default/ai_image';
+      const params = new URLSearchParams({
+        prompt,
+        aspect_ratio: 'Select Aspect Ratio',
+        link: 'writecream.com'
+      });
+
+      try {
+        const response = await fetch(`${url}?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            'accept': '*/*',
+            'origin': 'https://www.writecream.com',
+            'referer': 'https://www.writecream.com/',
+          }
+        });
+
+        fullResponse = await response.text();
+        message.textContent = 'Response: ' + fullResponse;
+
+        const json = JSON.parse(fullResponse);
+        if (json.image_link) {
+          image.src = json.image_link;
+          image.style.display = 'block';
+          copyButton.style.display = 'inline-block';
+          downloadButton.style.display = 'inline-block';
+        }
+
+      } catch (error) {
+        message.textContent = 'Error: ' + error;
+      }
+    }
+
+    function copyImageLink() {
+      const image = document.getElementById('image');
+      if (image.src) {
+        navigator.clipboard.writeText(image.src).then(() => {
+          alert('ইমেজ লিংক কপি হয়েছে!');
+        });
+      }
+    }
+
+    function downloadImage() {
+      const image = document.getElementById('image');
+      if (image.src) {
+        const link = document.createElement('a');
+        link.href = image.src;
+        link.download = 'generated_image.jpg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  </script>
+
+</body>
+</html>
